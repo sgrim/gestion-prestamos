@@ -107,6 +107,17 @@ credenciales/token, `403` sin permisos, `404` no existe, `409` ya resuelto o ema
 - **Datos demo**: `DemoDataInitializer` crea los usuarios y préstamos de ejemplo solo si la BD está
   vacía y `APP_SEED_ENABLED=true`. Desactívalo fuera de desarrollo.
 
+## Uso de IA
+
+Este proyecto se desarrolló con apoyo de una herramienta de IA (Claude Code, modelo Claude Sonnet 5).
+
+- **Lo generó la IA**: el código del backend y del frontend, los tests, el `Dockerfile`, el `docker-compose.yml`,
+  el `Makefile` y esta documentación, a partir de la especificación de la prueba (`simulador.pdf`).
+- **Lo definió el autor**: los requisitos y el stack (Java, Spring Boot, Angular, PostgreSQL, últimas versiones),
+  la arquitectura hexagonal y la entrega con Makefile y Docker Compose. También decidió qué dejar dentro del alcance.
+- **Verificación**: la IA ejecutó `make up`, probó el flujo contra la API real y corrió los tests
+  (backend 41, frontend 24). Ver commits `a158bad` y `3d69e41`, que llevan la línea `Co-Authored-By`.
+
 ## Frontend (Angular)
 
 Ver [`frontend/README.md`](frontend/README.md) para su estructura.
