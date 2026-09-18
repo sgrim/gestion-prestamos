@@ -1,0 +1,281 @@
+// Sistema de diseño mínimo: variables + clases compartidas (tarjetas, botones, formularios, badges).
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --fg: #0a0a0b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --primary: #18181b;
+  --primary-fg: #fafafa;
+  --primary-hover: #3f3f46;
+  --danger: #dc5450;
+  --danger-hover: #c4433f;
+  --danger-bg: #fef2f2;
+  --success-bg: #f0fdf4;
+  --success-fg: #166534;
+  --ring: #a1a1aa;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0b0d;
+    --surface: #131316;
+    --fg: #f4f4f5;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --primary: #f4f4f5;
+    --primary-fg: #18181b;
+    --primary-hover: #d4d4d8;
+    --danger-bg: #2a1213;
+    --success-bg: #0f2418;
+    --success-fg: #86efac;
+    --ring: #71717a;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+h1 {
+  font-size: 1.6rem;
+}
+h2 {
+  font-size: 1.35rem;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.25rem;
+  background: color-mix(in srgb, var(--border) 45%, transparent);
+  border-radius: var(--radius);
+}
+.tab {
+  flex: 0 0 auto;
+  min-width: 10rem;
+  padding: 0.4rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.tab-active {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+// Formularios
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--fg);
+    font: inherit;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+
+    &::placeholder {
+      color: var(--muted);
+    }
+    &:focus-visible {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+    }
+    &[aria-invalid='true'] {
+      border-color: var(--danger);
+    }
+  }
+}
+.error {
+  color: var(--danger);
+  font-size: 0.82rem;
+}
+form .btn {
+  margin-top: 1.25rem;
+}
+
+// Botones
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+.btn-block {
+  width: 100%;
+}
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--danger-hover);
+  }
+}
+
+// Avisos
+.alert {
+  margin: 1rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.alert-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.alert-success {
+  background: var(--success-bg);
+  color: var(--success-fg);
+}
+
+// Listas
+.list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.list-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.list-item-column {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+// Estados
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.badge-pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.badge-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+.badge-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .tab {
+    flex: 1;
+    min-width: 0;
+  }
+}

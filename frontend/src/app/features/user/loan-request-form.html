@@ -1,0 +1,62 @@
+<section class="card">
+  <h2>Solicitar Préstamo</h2>
+  <p class="muted">Ingrese el monto y el plazo que desea solicitar</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label for="amount">Monto</label>
+      <input
+        id="amount"
+        type="number"
+        inputmode="decimal"
+        step="0.01"
+        formControlName="amount"
+        placeholder="Monto"
+        [attr.aria-invalid]="invalid('amount')"
+      />
+      @if (invalid('amount')) {
+        <small class="error" role="alert">
+          @if (form.controls.amount.hasError('required')) {
+            El monto es obligatorio
+          } @else if (form.controls.amount.hasError('decimals')) {
+            Usa como máximo 2 decimales
+          } @else {
+            El monto debe estar entre {{ limits.minAmount }} y {{ limits.maxAmount }}
+          }
+        </small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="termMonths">Plazo (meses)</label>
+      <input
+        id="termMonths"
+        type="number"
+        inputmode="numeric"
+        formControlName="termMonths"
+        placeholder="Plazo en meses"
+        [attr.aria-invalid]="invalid('termMonths')"
+      />
+      @if (invalid('termMonths')) {
+        <small class="error" role="alert">
+          @if (form.controls.termMonths.hasError('required')) {
+            El plazo es obligatorio
+          } @else {
+            El plazo debe ser un número entero entre {{ limits.minTerm }} y {{ limits.maxTerm }} meses
+          }
+        </small>
+      }
+    </div>
+
+    @if (error(); as message) {
+      <p class="alert alert-error" role="alert">{{ message }}</p>
+    }
+    @if (success()) {
+      <p class="alert alert-success" role="status">Solicitud enviada. Quedó pendiente de revisión.</p>
+    }
+
+    <button class="btn" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Enviando…' : 'Solicitar' }}
+    </button>
+  </form>
+</section>

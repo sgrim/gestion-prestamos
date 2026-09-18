@@ -1,0 +1,54 @@
+<app-header [title]="'Hola, ' + name()" />
+
+<section class="card">
+  <h2>Gestionar Solicitudes de Préstamos</h2>
+  <p class="muted">
+    {{ store.pendingCount() }}
+    {{ store.pendingCount() === 1 ? 'solicitud pendiente' : 'solicitudes pendientes' }}
+  </p>
+
+  @if (store.error(); as message) {
+    <p class="alert alert-error" role="alert">{{ message }}</p>
+  }
+
+  @if (store.loading() && store.loans().length === 0) {
+    <p class="muted" role="status">Cargando…</p>
+  } @else if (store.loans().length === 0) {
+    <p class="muted">No hay solicitudes registradas.</p>
+  } @else {
+    <ul class="list">
+      @for (loan of store.loans(); track loan.id) {
+        <li class="list-item list-item-column">
+          <span>
+            Usuario: {{ loan.userEmail }} · Monto:
+            <strong>{{ loan.amount | currency: 'USD' : 'symbol' : '1.0-2' }}</strong>
+            · {{ loan.termMonths }} {{ loan.termMonths === 1 ? 'mes' : 'meses' }}
+            · Estado: <app-status-badge [status]="loan.status" />
+            <small class="muted">· {{ loan.requestedAt | date: 'dd/MM/yyyy HH:mm' }}</small>
+          </span>
+
+          @if (loan.status === 'PENDING') {
+            <span class="actions">
+              <button
+                class="btn"
+                type="button"
+                [disabled]="store.busyId() === loan.id"
+                (click)="store.decide(loan.id, 'approve')"
+              >
+                Aprobar
+              </button>
+              <button
+                class="btn btn-danger"
+                type="button"
+                [disabled]="store.busyId() === loan.id"
+                (click)="store.decide(loan.id, 'reject')"
+              >
+                Rechazar
+              </button>
+            </span>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

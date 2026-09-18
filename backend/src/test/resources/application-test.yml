@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:prestamos;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false   # las migraciones (SQL específico de PostgreSQL) se validan al arrancar con docker compose
+
+app:
+  jwt:
+    secret: test-secret-test-secret-test-secret-123456
+  seed:
+    enabled: true
+    password: "123"

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.ehcache.org/v3"
+        xmlns:jsr107="http://www.ehcache.org/v3/jsr107">
+
+    <service>
+        <jsr107:defaults enable-management="false" enable-statistics="true"/>
+    </service>
+
+    <!-- Consultas repetitivas sobre el estado de los préstamos. Se invalidan al guardar (ver LoanPersistenceAdapter). -->
+    <cache alias="loansByUser">
+        <key-type>java.lang.Long</key-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <heap unit="entries">1000</heap>
+    </cache>
+
+    <cache alias="loansById">
+        <key-type>java.lang.Long</key-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <heap unit="entries">5000</heap>
+    </cache>
+</config>
