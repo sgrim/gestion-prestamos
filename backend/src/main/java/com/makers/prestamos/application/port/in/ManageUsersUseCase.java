@@ -13,15 +13,18 @@ public interface ManageUsersUseCase {
 
     List<User> listAll();
 
-    /** TODO(candidato): implementar la actualización de datos básicos (nombre, rol, activo). */
+    /** Actualiza nombre, rol y estado. Un administrador no puede desactivarse ni cambiarse el rol a sí mismo. */
     User update(UpdateCommand command);
 
-    /** TODO(candidato): implementar la baja del usuario y decidir qué pasa con sus préstamos. */
-    void delete(Long id);
+    /**
+     * Baja lógica: el usuario queda inactivo (no puede iniciar sesión) pero se conserva su historial de
+     * préstamos. Es idempotente y un administrador no puede darse de baja a sí mismo.
+     */
+    void delete(Long id, Long requesterId);
 
     record CreateCommand(String email, String rawPassword, String fullName, Role role) {
     }
 
-    record UpdateCommand(Long id, String fullName, Role role, boolean active) {
+    record UpdateCommand(Long id, String fullName, Role role, boolean active, Long requesterId) {
     }
 }

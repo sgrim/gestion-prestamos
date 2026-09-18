@@ -8,7 +8,6 @@ import com.makers.prestamos.domain.exception.LoanNotFoundException;
 import com.makers.prestamos.domain.model.Loan;
 import com.makers.prestamos.domain.model.LoanStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -76,22 +75,28 @@ class DecideLoanServiceTest {
         verify(notifications, never()).loanDecided(any());
     }
 
-    // ------------------------------------------------------------------------------------------
-    // TODO(candidato): escribe estos tests tú mismo, siguiendo el patrón de los de arriba.
-    // ------------------------------------------------------------------------------------------
-
     @Test
-    @Disabled("TODO(candidato): rechazar guarda estado REJECTED, registra al admin y notifica")
     void rejectPersistsTheDecisionAndNotifies() {
-        // Given: un préstamo pendiente que devuelve loans.findByIdForUpdate
-        // When:  service.reject(7L, ADMIN_ID)
-        // Then:  estado REJECTED, decidedBy == ADMIN_ID, se guardó y se notificó
+        when(loans.findByIdForUpdate(7L)).thenReturn(Optional.of(pendingLoan()));
+        when(loans.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Loan result = service.reject(7L, ADMIN_ID);
+
+        assertThat(result.status()).isEqualTo(LoanStatus.REJECTED);
+        assertThat(result.decidedBy()).isEqualTo(ADMIN_ID);
+        assertThat(result.decidedAt()).isEqualTo(NOW);
+        verify(loans).save(result);
+        verify(notifications).loanDecided(result);
     }
 
     @Test
-    @Disabled("TODO(candidato): no se puede rechazar un préstamo ya aprobado")
     void rejectFailsWhenLoanWasAlreadyApproved() {
-        // Then: LoanAlreadyDecidedException y no se llama a save ni a notifications
+        Loan approved = new Loan(7L, 1L, new BigDecimal("1000.00"), 12, LoanStatus.APPROVED, NOW, NOW, ADMIN_ID);
+        when(loans.findByIdForUpdate(7L)).thenReturn(Optional.of(approved));
+
+        assertThatThrownBy(() -> service.reject(7L, ADMIN_ID)).isInstanceOf(LoanAlreadyDecidedException.class);
+        verify(loans, never()).save(any());
+        verify(notifications, never()).loanDecided(any());
     }
 
     private static Loan pendingLoan() {

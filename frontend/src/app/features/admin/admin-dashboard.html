@@ -3,9 +3,28 @@
 <section class="card">
   <h2>Gestionar Solicitudes de Préstamos</h2>
   <p class="muted">
-    {{ store.pendingCount() }}
-    {{ store.pendingCount() === 1 ? 'solicitud pendiente' : 'solicitudes pendientes' }}
+    @if (filter()) {
+      {{ store.loans().length }} {{ store.loans().length === 1 ? 'resultado' : 'resultados' }}
+    } @else {
+      {{ store.pendingCount() }}
+      {{ store.pendingCount() === 1 ? 'solicitud pendiente' : 'solicitudes pendientes' }}
+    }
   </p>
+
+  <nav class="tabs" role="tablist" aria-label="Filtrar por estado">
+    @for (f of filters; track f.label) {
+      <button
+        class="tab"
+        type="button"
+        role="tab"
+        [class.tab-active]="filter() === f.value"
+        [attr.aria-selected]="filter() === f.value"
+        (click)="select(f.value)"
+      >
+        {{ f.label }}
+      </button>
+    }
+  </nav>
 
   @if (store.error(); as message) {
     <p class="alert alert-error" role="alert">{{ message }}</p>
@@ -14,7 +33,7 @@
   @if (store.loading() && store.loans().length === 0) {
     <p class="muted" role="status">Cargando…</p>
   } @else if (store.loans().length === 0) {
-    <p class="muted">No hay solicitudes registradas.</p>
+    <p class="muted">No hay solicitudes para mostrar.</p>
   } @else {
     <ul class="list">
       @for (loan of store.loans(); track loan.id) {

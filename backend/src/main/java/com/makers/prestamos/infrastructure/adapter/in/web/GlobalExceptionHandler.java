@@ -7,6 +7,7 @@ import com.makers.prestamos.domain.exception.InvalidUserException;
 import com.makers.prestamos.domain.exception.LoanAccessDeniedException;
 import com.makers.prestamos.domain.exception.LoanAlreadyDecidedException;
 import com.makers.prestamos.domain.exception.LoanNotFoundException;
+import com.makers.prestamos.domain.exception.SelfModificationNotAllowedException;
 import com.makers.prestamos.domain.exception.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,8 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem(HttpStatus.NOT_FOUND, "Recurso no encontrado", ex.getMessage());
     }
 
-    @ExceptionHandler({LoanAlreadyDecidedException.class, EmailAlreadyRegisteredException.class})
+    @ExceptionHandler({LoanAlreadyDecidedException.class, EmailAlreadyRegisteredException.class,
+            SelfModificationNotAllowedException.class})
     ResponseEntity<Object> conflict(RuntimeException ex) {
         return problem(HttpStatus.CONFLICT, "Conflicto con el estado actual", ex.getMessage());
     }
@@ -59,12 +61,6 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({LoanAccessDeniedException.class, AccessDeniedException.class})
     ResponseEntity<Object> forbidden(RuntimeException ex) {
         return problem(HttpStatus.FORBIDDEN, "Acceso denegado", "No tienes permisos para realizar esta acción");
-    }
-
-    /** Endpoints que aún no están implementados (ver TODO en UserService). */
-    @ExceptionHandler(UnsupportedOperationException.class)
-    ResponseEntity<Object> notImplemented(UnsupportedOperationException ex) {
-        return problem(HttpStatus.NOT_IMPLEMENTED, "No implementado", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

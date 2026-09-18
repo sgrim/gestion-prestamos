@@ -1,8 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { LoanStore } from '../../core/loans/loan.store';
+import { LoanStatus } from '../../core/models';
 import { AppHeader } from '../../shared/app-header';
 import { StatusBadge } from '../../shared/status-badge';
 
@@ -18,11 +19,20 @@ export class AdminDashboard implements OnInit {
 
   protected readonly name = computed(() => this.auth.user()?.fullName ?? 'Admin');
 
+  protected readonly filters: { label: string; value?: LoanStatus }[] = [
+    { label: 'Todos' },
+    { label: 'Pendientes', value: 'PENDING' },
+    { label: 'Aprobados', value: 'APPROVED' },
+    { label: 'Rechazados', value: 'REJECTED' },
+  ];
+  protected readonly filter = signal<LoanStatus | undefined>(undefined);
+
   ngOnInit(): void {
     this.store.loadAll();
   }
 
-  // TODO(candidato): añade un filtro por estado (Todos / Pendientes / Aprobados / Rechazados).
-  //  Pistas: `store.loadAll(status)` ya envía `?status=` al backend; solo falta la UI,
-  //  una signal con el filtro seleccionado y un test que verifique que se recarga la lista.
+  protected select(status?: LoanStatus): void {
+    this.filter.set(status);
+    this.store.loadAll(status);
+  }
 }

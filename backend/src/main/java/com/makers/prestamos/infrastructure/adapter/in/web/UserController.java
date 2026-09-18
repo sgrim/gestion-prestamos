@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,14 +55,15 @@ class UserController {
     }
 
     @PutMapping("/{id}")
-    UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest body) {
-        return UserResponse.from(users.update(
-                new ManageUsersUseCase.UpdateCommand(id, body.fullName(), body.role(), body.active())));
+    UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+                        @Valid @RequestBody UpdateUserRequest body) {
+        return UserResponse.from(users.update(new ManageUsersUseCase.UpdateCommand(
+                id, body.fullName(), body.role(), body.active(), CurrentUser.from(jwt).id())));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void delete(@PathVariable Long id) {
-        users.delete(id);
+    void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        users.delete(id, CurrentUser.from(jwt).id());
     }
 }

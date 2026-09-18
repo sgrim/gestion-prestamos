@@ -37,7 +37,7 @@ Otros comandos: `make help` · `make logs` · `make test` · `make down` · `mak
 | Caché | Ehcache 3 vía JCache |
 | Base de datos | PostgreSQL 18 |
 | Frontend | Angular 22 (standalone, signals, Reactive Forms, Guards, interceptor JWT) |
-| Tests | JUnit 5, Mockito, Spring Boot Test + MockMvc (H2), ArchUnit |
+| Tests | JUnit 5, Mockito, Spring Boot Test + MockMvc (H2), ArchUnit; Vitest en el frontend |
 | Infra | Docker Compose, Makefile, nginx |
 
 ## Arquitectura hexagonal (backend)
@@ -80,11 +80,12 @@ la rompe (p. ej. si el dominio importa Spring o un servicio importa un controlad
 | `GET` | `/api/loans?status=PENDING` | **admin** |
 | `PATCH` | `/api/loans/{id}/approve` · `/reject` | **admin** |
 | `GET/POST` | `/api/users`, `/api/users/{id}` | **admin** |
-| `PUT/DELETE` | `/api/users/{id}` | **admin** — *pendiente, ver más abajo* |
+| `PUT` | `/api/users/{id}` | **admin** — nombre, rol y estado |
+| `DELETE` | `/api/users/{id}` | **admin** — baja lógica (el usuario queda inactivo) |
 
 Los errores usan `ProblemDetail` (RFC 9457): `400` validación (con `errors` por campo), `401`
 credenciales/token, `403` sin permisos, `404` no existe, `409` ya resuelto o email duplicado,
-`422` regla de negocio, `501` no implementado.
+`422` regla de negocio.
 
 ## Decisiones técnicas
 
@@ -110,7 +111,20 @@ credenciales/token, `403` sin permisos, `404` no existe, `409` ya resuelto o ema
 
 Ver [`frontend/README.md`](frontend/README.md) para su estructura.
 
-## Trabajo pendiente (a completar por el autor)
+## Gestión de usuarios
 
-Ver [`docs/TAREAS_PENDIENTES.md`](docs/TAREAS_PENDIENTES.md): actualización/baja de usuarios, tests de
-rechazo y una mejora del panel de administración.
+- `DELETE` es una **baja lógica**: el usuario pasa a `active = false` y ya no puede iniciar sesión, pero se
+  conserva su historial de préstamos (la FK impide el borrado físico y los datos financieros no deberían perderse).
+  Es idempotente.
+- Un administrador **no puede** desactivarse, borrarse ni cambiarse el rol a sí mismo (`409`), para no dejar el
+  sistema sin administradores por accidente.
+- Limitación conocida: un JWT ya emitido sigue siendo válido hasta que caduca (2 h por defecto) aunque el usuario
+  se dé de baja. Para revocación inmediata habría que comprobar `active` en cada petición o usar una lista de
+  revocación.
+
+## Ideas futuras
+
+- Calcular y mostrar la cuota mensual estimada al solicitar (tasa fija configurable).
+- Paginación en `GET /api/loans`.
+- Documentar la API con springdoc-openapi.
+- Caché distribuida (p. ej. Redis) si se despliega con varias réplicas.

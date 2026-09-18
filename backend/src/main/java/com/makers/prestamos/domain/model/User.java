@@ -39,4 +39,13 @@ public record User(
     public boolean isAdmin() {
         return role == Role.ADMIN;
     }
+
+    /** Devuelve una copia con los datos de perfil actualizados (el email y la clave no cambian aquí). */
+    public User withProfile(String newFullName, Role newRole, boolean newActive) {
+        return new User(id, email, passwordHash, newFullName, newRole, newActive, createdAt);
+    }
+
+    public User deactivate() {
+        return withProfile(fullName, role, false);
+    }
 }

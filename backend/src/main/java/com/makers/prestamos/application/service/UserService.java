@@ -4,6 +4,7 @@ import com.makers.prestamos.application.port.in.ManageUsersUseCase;
 import com.makers.prestamos.application.port.out.PasswordHasherPort;
 import com.makers.prestamos.application.port.out.UserRepositoryPort;
 import com.makers.prestamos.domain.exception.EmailAlreadyRegisteredException;
+import com.makers.prestamos.domain.exception.SelfModificationNotAllowedException;
 import com.makers.prestamos.domain.exception.UserNotFoundException;
 import com.makers.prestamos.domain.model.User;
 import org.springframework.stereotype.Service;
@@ -51,15 +52,22 @@ public class UserService implements ManageUsersUseCase {
 
     @Override
     public User update(UpdateCommand command) {
-        // TODO(candidato): cargar el usuario, aplicar los cambios de forma inmutable
-        //  (User es un record) y persistir. Pista: añade un método `withProfile(...)` en User.
-        throw new UnsupportedOperationException("Actualizar usuario: pendiente de implementar");
+        User user = getById(command.id());
+        boolean isSelf = command.id().equals(command.requesterId());
+        if (isSelf && (!command.active() || command.role() != user.role())) {
+            throw new SelfModificationNotAllowedException("No puedes desactivarte ni cambiar tu propio rol");
+        }
+        return users.save(user.withProfile(command.fullName(), command.role(), command.active()));
     }
 
     @Override
-    public void delete(Long id) {
-        // TODO(candidato): decidir la política (baja lógica vs. física) y qué hacer con los
-        //  préstamos asociados; después implementar y cubrir con un test.
-        throw new UnsupportedOperationException("Eliminar usuario: pendiente de implementar");
+    public void delete(Long id, Long requesterId) {
+        User user = getById(id);
+        if (id.equals(requesterId)) {
+            throw new SelfModificationNotAllowedException("No puedes eliminar tu propio usuario");
+        }
+        if (user.active()) {
+            users.save(user.deactivate());
+        }
     }
 }

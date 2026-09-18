@@ -91,4 +91,14 @@ describe('LoanStore', () => {
     expect(store.error()).toBe('El préstamo 1 ya fue resuelto');
     expect(store.loans()[0].status).toBe('APPROVED');
   });
+
+  it('con filtro activo, un préstamo decidido sale de la lista filtrada', () => {
+    store.loadAll('PENDING');
+    http.expectOne('/api/loans?status=PENDING').flush([loan({ id: 1 }), loan({ id: 2 })]);
+
+    store.decide(1, 'approve');
+    http.expectOne('/api/loans/1/approve').flush(loan({ id: 1, status: 'APPROVED' }));
+
+    expect(store.loans().map((l) => l.id)).toEqual([2]);
+  });
 });

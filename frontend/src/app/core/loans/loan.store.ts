@@ -21,6 +21,8 @@ export class LoanStore {
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _busyId = signal<number | null>(null);
+  /** Filtro de estado activo en la vista de administración (undefined = todos). */
+  private currentStatus: LoanStatus | undefined;
 
   readonly loans = this._loans.asReadonly();
   readonly loading = this._loading.asReadonly();
@@ -40,11 +42,13 @@ export class LoanStore {
 
   /** Préstamos del usuario autenticado. */
   loadMine(): void {
+    this.currentStatus = undefined;
     this.load(this.http.get<Loan[]>(`${API_URL}/loans/me`));
   }
 
   /** Todos los préstamos (admin). El backend admite filtrar por estado. */
   loadAll(status?: LoanStatus): void {
+    this.currentStatus = status;
     const params = status ? new HttpParams().set('status', status) : undefined;
     this.load(this.http.get<Loan[]>(`${API_URL}/loans`, { params }));
   }
@@ -60,14 +64,20 @@ export class LoanStore {
     this._error.set(null);
     this.http.patch<Loan>(`${API_URL}/loans/${id}/${decision}`, null).subscribe({
       next: (updated) => {
-        this._loans.update((list) => list.map((l) => (l.id === id ? { ...l, ...updated } : l)));
+        // Con un filtro activo, el préstamo decidido deja de pertenecer a la lista filtrada.
+        const status = this.currentStatus;
+        this._loans.update((list) =>
+          list
+            .map((l) => (l.id === id ? { ...l, ...updated } : l))
+            .filter((l) => !status || l.status === status),
+        );
         this._busyId.set(null);
       },
       error: (err: unknown) => {
         this._busyId.set(null);
         // Si otro admin ya lo resolvió (409), refrescamos para mostrar el estado real.
         // El refresco limpia el error, así que el mensaje se fija después.
-        this.loadAll();
+        this.loadAll(this.currentStatus);
         this._error.set(errorMessage(err));
       },
     });

@@ -10,9 +10,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,6 +126,49 @@ class LoanApiIntegrationTest {
 
         mvc.perform(get("/api/loans/{id}", loanId).header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminManagesUserLifecycle() throws Exception {
+        String adminToken = login("admin@test.com");
+
+        String created = mvc.perform(post("/api/users").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"temporal@test.com\",\"password\":\"123\",\"fullName\":\"Temporal\",\"role\":\"USER\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        int id = JsonPath.read(created, "$.id");
+
+        // Actualizar
+        mvc.perform(put("/api/users/{id}", id).header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fullName\":\"Nombre Editado\",\"role\":\"USER\",\"active\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fullName").value("Nombre Editado"));
+
+        // Baja lógica: el usuario ya no puede iniciar sesión, pero sigue existiendo
+        mvc.perform(delete("/api/users/{id}", id).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"temporal@test.com\",\"password\":\"123\"}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/{id}", id).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false));
+    }
+
+    @Test
+    void adminCannotDeleteThemselvesAndUsersCannotManageUsers() throws Exception {
+        String adminToken = login("admin@test.com");
+        String userToken = login("usuario@test.com");
+
+        mvc.perform(delete("/api/users/{id}", 1).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isConflict());
+        mvc.perform(delete("/api/users/{id}", 1).header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/api/users/{id}", 9999).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNotFound());
     }
 
     private String login(String email) throws Exception {
